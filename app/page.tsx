@@ -27,7 +27,19 @@ export default function LoginPage() {
       // For testing purposes, let's implement a simple credential check
       // In a real app, this would use NextAuth properly configured
       if (email === 'admin@example.com' && password === 'password') {
-        // Redirect to dashboard on successful login
+        // Store role in localStorage
+        localStorage.setItem('userRole', 'admin');
+        // Redirect to dashboard on successful admin login
+        router.push('/dashboard');
+      } else if (email === 'lecturer@example.com' && password === 'password') {
+        // Store role in localStorage
+        localStorage.setItem('userRole', 'lecturer');
+        // Redirect to dashboard for lecturer role
+        router.push('/dashboard/my-courses');
+      } else if (email === 'head@example.com' && password === 'password') {
+        // Store role in localStorage
+        localStorage.setItem('userRole', 'head');
+        // Redirect to dashboard for department head role
         router.push('/dashboard');
       } else {
         setError('Invalid email or password');

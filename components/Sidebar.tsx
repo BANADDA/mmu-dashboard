@@ -14,7 +14,7 @@ import {
 } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ReactNode } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 
 type SidebarItemProps = {
   href: string;
@@ -32,6 +32,8 @@ type SidebarGroup = {
     title: string;
   }>;
 };
+
+type UserRole = 'admin' | 'lecturer' | 'head';
 
 const SidebarItem = ({ href, icon, title, active }: SidebarItemProps) => {
   return (
@@ -51,9 +53,34 @@ const SidebarItem = ({ href, icon, title, active }: SidebarItemProps) => {
 
 export function Sidebar() {
   const pathname = usePathname();
+  const [userRole, setUserRole] = useState<UserRole>('admin');
+  const [userName, setUserName] = useState('Admin User');
+  const [userInitials, setUserInitials] = useState('AU');
+  const [roleDisplay, setRoleDisplay] = useState('Super Admin');
 
-  // Organize routes into groups
-  const routeGroups: SidebarGroup[] = [
+  // Detect user role based on URL pattern or localstorage
+  useEffect(() => {
+    // Check for lecturer-specific routes
+    if (pathname.includes('/my-')) {
+      setUserRole('lecturer');
+      setUserName('Lecturer User');
+      setUserInitials('LU');
+      setRoleDisplay('Lecturer');
+    } else if (localStorage.getItem('userRole') === 'lecturer') {
+      setUserRole('lecturer');
+      setUserName('Lecturer User');
+      setUserInitials('LU');
+      setRoleDisplay('Lecturer');
+    } else if (localStorage.getItem('userRole') === 'head') {
+      setUserRole('head');
+      setUserName('Department Head');
+      setUserInitials('DH');
+      setRoleDisplay('Department Head');
+    }
+  }, [pathname]);
+
+  // Define navigation groups for admin
+  const adminRouteGroups: SidebarGroup[] = [
     {
       title: "Main",
       items: [
@@ -131,6 +158,124 @@ export function Sidebar() {
     }
   ];
 
+  // Define navigation groups for lecturer
+  const lecturerRouteGroups: SidebarGroup[] = [
+    {
+      title: "Main",
+      items: [
+        {
+          href: '/dashboard/my-courses',
+          icon: <BookOpenIcon />,
+          title: 'My Courses'
+        },
+      ]
+    },
+    {
+      title: "Teaching",
+      items: [
+        {
+          href: '/dashboard/my-schedule',
+          icon: <CalendarIcon />,
+          title: 'My Schedule'
+        },
+        {
+          href: '/dashboard/my-attendance',
+          icon: <ClipboardDocumentCheckIcon />,
+          title: 'My Attendance'
+        },
+        {
+          href: '/dashboard/my-students',
+          icon: <UserGroupIcon />,
+          title: 'My Students'
+        },
+      ]
+    },
+    {
+      title: "Insights",
+      items: [
+        {
+          href: '/dashboard/analytics',
+          icon: <ChartBarIcon />,
+          title: 'Analytics & Reports'
+        },
+      ]
+    },
+    {
+      title: "System",
+      items: [
+        {
+          href: '/dashboard/settings',
+          icon: <Cog6ToothIcon />,
+          title: 'Settings'
+        },
+      ]
+    }
+  ];
+
+  // Define navigation groups for department head (mix of admin and lecturer views)
+  const headRouteGroups: SidebarGroup[] = [
+    {
+      title: "Main",
+      items: [
+        {
+          href: '/dashboard',
+          icon: <HomeIcon />,
+          title: 'Dashboard'
+        },
+      ]
+    },
+    {
+      title: "Department",
+      items: [
+        {
+          href: '/dashboard/departments',
+          icon: <BuildingLibraryIcon />,
+          title: 'Department'
+        },
+        {
+          href: '/dashboard/courses',
+          icon: <BookOpenIcon />,
+          title: 'Courses'
+        },
+        {
+          href: '/dashboard/faculty',
+          icon: <AcademicCapIcon />,
+          title: 'Faculty'
+        },
+      ]
+    },
+    {
+      title: "Teaching",
+      items: [
+        {
+          href: '/dashboard/my-courses',
+          icon: <BookOpenIcon />,
+          title: 'My Courses'
+        },
+        {
+          href: '/dashboard/my-schedule',
+          icon: <CalendarIcon />,
+          title: 'My Schedule'
+        },
+      ]
+    },
+    {
+      title: "Insights",
+      items: [
+        {
+          href: '/dashboard/analytics',
+          icon: <ChartBarIcon />,
+          title: 'Analytics & Reports'
+        },
+      ]
+    },
+  ];
+
+  // Get the route groups based on user role
+  const routeGroups = 
+    userRole === 'lecturer' ? lecturerRouteGroups : 
+    userRole === 'head' ? headRouteGroups : adminRouteGroups;
+
   return (
     <aside className="fixed left-0 top-0 z-10 h-screen w-64 bg-[#111827] text-white">
       <div className="flex h-16 items-center justify-center border-b border-gray-700">
@@ -166,11 +311,11 @@ export function Sidebar() {
       <div className="absolute bottom-0 left-0 right-0 border-t border-gray-700 p-4">
         <div className="flex items-center gap-3">
           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-700 text-white">
-            <span className="text-sm font-medium">AU</span>
+            <span className="text-sm font-medium">{userInitials}</span>
           </div>
           <div>
-            <p className="text-sm font-medium text-white">Admin User</p>
-            <p className="text-xs text-gray-400">Super Admin</p>
+            <p className="text-sm font-medium text-white">{userName}</p>
+            <p className="text-xs text-gray-400">{roleDisplay}</p>
           </div>
         </div>
       </div>
